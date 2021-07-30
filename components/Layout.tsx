@@ -5,6 +5,7 @@ import {
   XIcon,
   MusicNoteIcon,
   CollectionIcon,
+  BookmarkIcon,
 } from '@heroicons/react/outline';
 import { BellIcon, SearchIcon, CogIcon } from '@heroicons/react/solid';
 import Link from 'next/link';
@@ -14,6 +15,12 @@ const navigation = [
   {
     name: 'Following',
     href: '/following',
+    icon: BookmarkIcon,
+    current: false,
+  },
+  {
+    name: 'Collection',
+    href: '/collection',
     icon: CollectionIcon,
     current: false,
   },
