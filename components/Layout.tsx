@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useState } from 'react';
+import * as React from 'react';
 import { Dialog, Menu, Transition } from '@headlessui/react';
 import {
   MenuAlt2Icon,
@@ -9,6 +9,8 @@ import {
 } from '@heroicons/react/outline';
 import { BellIcon, SearchIcon, CogIcon } from '@heroicons/react/solid';
 import Link from 'next/link';
+import { useAuth } from '../context/auth-context';
+import AuthModal from './authModal';
 
 const navigation = [
   { name: 'Explore', href: '/', icon: MusicNoteIcon, current: true },
@@ -25,26 +27,24 @@ const navigation = [
     current: false,
   },
 ];
-const userNavigation = [
-  { name: 'Your Profile', href: '#' },
-  { name: 'Settings', href: '#' },
-  { name: 'Sign out', href: '#' },
-];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 type LayoutProps = {
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
 export default function Layout({ children }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const { user, setIsSignIn } = useAuth();
+  const [authOpen, setAuthOpen] = React.useState(false);
 
   return (
     <div className='h-screen flex overflow-hidden bg-gray-100'>
-      <Transition.Root show={sidebarOpen} as={Fragment}>
+      <AuthModal open={authOpen} setOpen={setAuthOpen} />
+      <Transition.Root show={sidebarOpen} as={React.Fragment}>
         <Dialog
           as='div'
           static
@@ -53,7 +53,7 @@ export default function Layout({ children }: LayoutProps) {
           onClose={setSidebarOpen}
         >
           <Transition.Child
-            as={Fragment}
+            as={React.Fragment}
             enter='transition-opacity ease-linear duration-300'
             enterFrom='opacity-0'
             enterTo='opacity-100'
@@ -64,7 +64,7 @@ export default function Layout({ children }: LayoutProps) {
             <Dialog.Overlay className='fixed inset-0 bg-gray-600 bg-opacity-75' />
           </Transition.Child>
           <Transition.Child
-            as={Fragment}
+            as={React.Fragment}
             enter='transition ease-in-out duration-300 transform'
             enterFrom='-translate-x-full'
             enterTo='translate-x-0'
@@ -74,7 +74,7 @@ export default function Layout({ children }: LayoutProps) {
           >
             <div className='relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-gray-800'>
               <Transition.Child
-                as={Fragment}
+                as={React.Fragment}
                 enter='ease-in-out duration-300'
                 enterFrom='opacity-0'
                 enterTo='opacity-100'
@@ -149,9 +149,8 @@ export default function Layout({ children }: LayoutProps) {
             <div className='flex-1 flex flex-col overflow-y-auto'>
               <nav className='flex-1  py-4 bg-gray-800 space-y-1'>
                 {navigation.map((item) => (
-                  <Link href={item.href}>
+                  <Link key={item.name} href={item.href}>
                     <a
-                      key={item.name}
                       className={classNames(
                         item.current
                           ? 'text-indigo-500 border-r-4 border-indigo-500'
@@ -208,63 +207,91 @@ export default function Layout({ children }: LayoutProps) {
               </form>
             </div>
             <div className='ml-4 flex items-center md:ml-6'>
-              <button className='p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900'>
-                <span className='sr-only'>View notifications</span>
-                <BellIcon className='h-6 w-6' aria-hidden='true' />
-              </button>
-              <button className='p-1 ml-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900'>
-                <span className='sr-only'>View settings</span>
-                <CogIcon className='h-6 w-6' aria-hidden='true' />
-              </button>
+              {user ? (
+                <>
+                  <button className='p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900'>
+                    <span className='sr-only'>View notifications</span>
+                    <BellIcon className='h-6 w-6' aria-hidden='true' />
+                  </button>
 
-              {/* Profile dropdown */}
-              <Menu as='div' className='ml-4 relative'>
-                {({ open }) => (
-                  <>
-                    <div>
-                      <Menu.Button className='max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
-                        <span className='sr-only'>Open user menu</span>
-                        <img
-                          className='h-8 w-8 rounded-full'
-                          src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-                          alt=''
-                        />
-                      </Menu.Button>
-                    </div>
-                    <Transition
-                      show={open}
-                      as={Fragment}
-                      enter='transition ease-out duration-100'
-                      enterFrom='transform opacity-0 scale-95'
-                      enterTo='transform opacity-100 scale-100'
-                      leave='transition ease-in duration-75'
-                      leaveFrom='transform opacity-100 scale-100'
-                      leaveTo='transform opacity-0 scale-95'
-                    >
-                      <Menu.Items
-                        static
-                        className='origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'
-                      >
-                        {userNavigation.map((item) => (
-                          <Menu.Item key={item.name}>
-                            {({ active }) => (
-                              <a
-                                href={item.href}
-                                className={classNames(
-                                  active ? 'bg-gray-100' : '',
-                                  'block px-4 py-2 text-sm text-gray-700'
-                                )}
-                              >
-                                {item.name}
-                              </a>
+                  {/* Profile dropdown */}
+                  <Menu as='div' className='ml-4 relative'>
+                    {({ open }) => (
+                      <>
+                        <div>
+                          <Menu.Button className='max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                            <span className='sr-only'>Open user menu</span>
+                            {user.photoURL ? (
+                              <img
+                                className='h-8 w-8 rounded-full'
+                                src={user.photoURL}
+                                alt=''
+                              />
+                            ) : (
+                              <span className='inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-100'>
+                                <svg
+                                  className='h-full w-full text-gray-300'
+                                  fill='currentColor'
+                                  viewBox='0 0 24 24'
+                                >
+                                  <path d='M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z' />
+                                </svg>
+                              </span>
                             )}
-                          </Menu.Item>
-                        ))}
-                      </Menu.Items>
-                    </Transition>
-                  </>
-                )}
-              </Menu>
+                          </Menu.Button>
+                        </div>
+                        <Transition
+                          show={open}
+                          as={React.Fragment}
+                          enter='transition ease-out duration-100'
+                          enterFrom='transform opacity-0 scale-95'
+                          enterTo='transform opacity-100 scale-100'
+                          leave='transition ease-in duration-75'
+                          leaveFrom='transform opacity-100 scale-100'
+                          leaveTo='transform opacity-0 scale-95'
+                        >
+                          <Menu.Items
+                            static
+                            className='origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none'
+                          >
+                            <Menu.Item>
+                              <button
+                                onClick={() => {}}
+                                className='block w-full text-left px-4 py-2 text-sm text-gray-700'
+                              >
+                                Sign out
+                              </button>
+                            </Menu.Item>
+                          </Menu.Items>
+                        </Transition>
+                      </>
+                    )}
+                  </Menu>
+                </>
+              ) : (
+                <>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setIsSignIn(true);
+                      setAuthOpen(true);
+                    }}
+                    className='inline-flex items-center px-3 py-2 border border-white shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                  >
+                    Log in
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setIsSignIn(false);
+                      setAuthOpen(true);
+                    }}
+                    className='inline-flex ml-2 items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                  >
+                    Sign up
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import Layout from '../components/Layout';
+import * as React from 'react';
+import Layout from '../components/layout';
 import { PlayIcon } from '@heroicons/react/solid';
+import { useAuth } from '../context/auth-context';
+import AuthModal from '../components/authModal';
 
 const latestIDs = [
   {
@@ -73,24 +75,28 @@ const files = [
       'Related tracks: Oscar Mulero - Source Artists Live Streaming - 11.04.2020',
     source:
       'https://i1.sndcdn.com/artworks-G5nyDVoy5zPjNNS7-VRGrLA-t500x500.jpg',
+    id: 1,
   },
   {
     title:
       'Related tracks: Oscar Mulero - Source Artists Live Streaming - 11.04.2020',
     source:
       'https://i1.sndcdn.com/artworks-G5nyDVoy5zPjNNS7-VRGrLA-t500x500.jpg',
+    id: 2,
   },
   {
     title:
       'Related tracks: Oscar Mulero - Source Artists Live Streaming - 11.04.2020',
     source:
       'https://i1.sndcdn.com/artworks-G5nyDVoy5zPjNNS7-VRGrLA-t500x500.jpg',
+    id: 3,
   },
   {
     title:
       'Related tracks: Oscar Mulero - Source Artists Live Streaming - 11.04.2020',
     source:
       'https://i1.sndcdn.com/artworks-G5nyDVoy5zPjNNS7-VRGrLA-t500x500.jpg',
+    id: 4,
   },
 ];
 
@@ -127,12 +133,12 @@ const trackIDs = [
   },
 ];
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  function requestIdHandler(event: React.SyntheticEvent) {
+    event.preventDefault();
+  }
 
   return (
     <Layout>
@@ -143,14 +149,14 @@ export default function Home() {
               <h1 className='text-5xl xl:text-6xl font-semibold text-white'>
                 Need a Track ID?
               </h1>
-              <p className='text-md lg:text-lg mt-2 font-medium text-white'>
+              <p className='text-base lg:text-md mt-2 text-gray-200'>
                 Track ID Please has over{' '}
                 <span className='text-indigo-400'>2.3 thousand</span> track ids
               </p>
             </div>
             <div className='mt-8 grid-span-1 sm:mt-0'>
               <div className=''>
-                <form action='#' method='POST' className='space-y-6'>
+                <form onSubmit={requestIdHandler} className='space-y-6'>
                   <div>
                     <label htmlFor='mix-url' className='sr-only'>
                       Soundcloud or Youtube url
@@ -160,8 +166,7 @@ export default function Home() {
                       name='mix-url'
                       id='mix-url'
                       placeholder='Soundcloud or Youtube url'
-                      required
-                      className='block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
+                      className='block w-full shadow focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
                     />
                   </div>
 
@@ -174,15 +179,14 @@ export default function Home() {
                       name='track-time'
                       id='track-time'
                       placeholder='Track time'
-                      required
-                      className='block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
+                      className='block w-full shadow focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
                     />
                   </div>
 
                   <div>
                     <button
                       type='submit'
-                      className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                      className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                     >
                       Request an ID
                     </button>
@@ -201,10 +205,7 @@ export default function Home() {
               </div>
               <ul role='list' className='flex justify-between mt-4'>
                 {files.map((file) => (
-                  <li
-                    key={file.source}
-                    className='relative cursor-pointer group'
-                  >
+                  <li key={file.id} className='relative cursor-pointer group'>
                     <div className='block w-28 rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-indigo-500 overflow-hidden'>
                       <img
                         src={file.source}
@@ -251,8 +252,10 @@ export default function Home() {
                                 {track.artist}
                               </p>
                             </div>
-                            <div className='mt-2 sm:mt-0 text-sm text-gray-200 truncate sm:line-clamp-2'>
-                              {track.mix}
+                            <div className='mt-2 sm:mt-0'>
+                              <p className=' text-sm text-gray-200 line-clamp-1 sm:line-clamp-2'>
+                                {track.mix}
+                              </p>
                             </div>
                             <div className='hidden md:block'>
                               <div>
