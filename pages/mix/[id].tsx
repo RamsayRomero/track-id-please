@@ -1,3 +1,4 @@
+import * as React from 'react';
 import Layout from '../../components/layout';
 import {
   PlayIcon,
@@ -5,6 +6,7 @@ import {
   ThumbUpIcon as ThumbUpIconSelected,
 } from '@heroicons/react/solid';
 import { ThumbUpIcon, ThumbDownIcon } from '@heroicons/react/outline';
+import axios from 'axios';
 
 const trackIDs = [
   {
@@ -37,14 +39,35 @@ const trackIDs = [
 ];
 
 export default function Mix() {
+  function parseOEmbedHTML(html: string) {
+    let src = html.split(' ').find((el) => el.startsWith('src'));
+    setIframeSrc(src?.slice(5, -11));
+  }
+
+  const [iframeSrc, setIframeSrc] = React.useState<string | undefined>();
+
+  React.useEffect(() => {
+    axios
+      .get(
+        'https://youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=iLi-D0nRYiM&t=2192s'
+      )
+      .then((res) => parseOEmbedHTML(res.data.html))
+      .catch((err) => console.error(err));
+  }, []);
+
   return (
     <Layout>
-      <div className='lg:grid grid-cols-2 min-h-full gap-4 pr-4'>
+      <div className='lg:grid grid-cols-2 min-h-full gap-4'>
         <div className='col-span-1 lg:relative'>
-          <img
-            className='lg:absolute lg:inset-0 lg:h-full w-full h-48 object-cover'
-            src='https://i1.sndcdn.com/artworks-G5nyDVoy5zPjNNS7-VRGrLA-t500x500.jpg'
-          />
+          {iframeSrc && (
+            <iframe
+              width='100%'
+              height='100%'
+              scrolling='no'
+              frameBorder='no'
+              src={iframeSrc}
+            ></iframe>
+          )}
         </div>
         <div className='col-span-1 my-4 lg:my-0'>
           <div>

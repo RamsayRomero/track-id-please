@@ -3,15 +3,22 @@ import { Dialog, Transition } from '@headlessui/react';
 import { LockClosedIcon } from '@heroicons/react/solid';
 import { useAuth } from '../context/auth-context';
 
-type AuthModalProps = {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-};
+// type AuthModalProps = {
+//   open: boolean;
+//   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+// };
 
-export default function AuthModal({ open, setOpen }: AuthModalProps) {
+export default function AuthModal() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  const { signin, signup, isSignIn, setIsSignIn } = useAuth();
+  const {
+    signin,
+    signup,
+    isSignIn,
+    setIsSignIn,
+    authModalIsOpen: open,
+    setAuthModalIsOpen: setOpen,
+  } = useAuth();
 
   function submitHandler(event: React.SyntheticEvent) {
     setErrorMessage(null);

@@ -38,12 +38,10 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const { user, setIsSignIn } = useAuth();
-  const [authOpen, setAuthOpen] = React.useState(false);
+  const { user, signout, setAuthModalIsOpen, setIsSignIn } = useAuth();
 
   return (
     <div className='h-screen flex overflow-hidden bg-gray-100'>
-      <AuthModal open={authOpen} setOpen={setAuthOpen} />
       <Transition.Root show={sidebarOpen} as={React.Fragment}>
         <Dialog
           as='div'
@@ -256,7 +254,7 @@ export default function Layout({ children }: LayoutProps) {
                           >
                             <Menu.Item>
                               <button
-                                onClick={() => {}}
+                                onClick={signout}
                                 className='block w-full text-left px-4 py-2 text-sm text-gray-700'
                               >
                                 Sign out
@@ -274,7 +272,7 @@ export default function Layout({ children }: LayoutProps) {
                     type='button'
                     onClick={() => {
                       setIsSignIn(true);
-                      setAuthOpen(true);
+                      setAuthModalIsOpen(true);
                     }}
                     className='inline-flex items-center px-3 py-2 border border-white shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                   >
@@ -284,7 +282,7 @@ export default function Layout({ children }: LayoutProps) {
                     type='button'
                     onClick={() => {
                       setIsSignIn(false);
-                      setAuthOpen(true);
+                      setAuthModalIsOpen(true);
                     }}
                     className='inline-flex ml-2 items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                   >
