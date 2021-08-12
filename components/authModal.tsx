@@ -24,9 +24,11 @@ export default function AuthModal() {
     setErrorMessage(null);
     event.preventDefault();
     const target = event.target as typeof event.target & {
+      username: { value: string };
       email: { value: string };
       password: { value: string };
     };
+
     const email = target.email.value;
     const password = target.password.value;
     if (isSignIn) {
@@ -34,7 +36,8 @@ export default function AuthModal() {
         .then(() => setOpen(false))
         .catch((err) => setErrorMessage(err.message));
     } else {
-      signup(email, password)
+      const username = target.username.value;
+      signup(email, password, username)
         .then(() => setOpen(false))
         .catch((err) => setErrorMessage(err.message));
     }
@@ -118,6 +121,21 @@ export default function AuthModal() {
                         placeholder='Email address'
                       />
                     </div>
+                    {!isSignIn && (
+                      <div>
+                        <label htmlFor='username' className='sr-only'>
+                          Username
+                        </label>
+                        <input
+                          id='username'
+                          name='username'
+                          type='text'
+                          required
+                          className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
+                          placeholder='Username'
+                        />
+                      </div>
+                    )}
                     <div>
                       <label htmlFor='password' className='sr-only'>
                         Password

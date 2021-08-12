@@ -190,6 +190,7 @@ export default function Example() {
               <img
                 className='h-full w-full object-cover'
                 src='https://images.unsplash.com/photo-1547210841-2ceb0c5f0679?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80'
+                alt='Turntables'
               />
               <div className='absolute inset-0 bg-gradient-to-t from-indigo-500 to-black mix-blend-multiply' />
             </div>

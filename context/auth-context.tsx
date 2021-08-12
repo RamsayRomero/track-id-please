@@ -5,7 +5,11 @@ import AuthModal from '../components/authModal';
 interface AuthContextInterface {
   user: firebase.User | null;
   signin: (email: string, password: string) => Promise<firebase.User | null>;
-  signup: (email: any, password: any) => Promise<firebase.User | null>;
+  signup: (
+    email: any,
+    password: any,
+    username: string
+  ) => Promise<firebase.User | null>;
   signout: () => void;
   isSignIn: boolean;
   setIsSignIn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -54,13 +58,24 @@ function useProvideAuth() {
         return response.user;
       });
   };
-  const signup = (email: string, password: string) => {
+  const signup = (email: string, password: string, username: string) => {
     return firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
       .then((response) => {
-        setUser(response.user);
-        return response.user;
+        const { user } = response;
+        if (user) {
+          firebase
+            .firestore()
+            .doc(`users/${user.uid}`)
+            .set({
+              image: user.photoURL,
+              name: user.displayName ? user.displayName : username,
+              score: 0,
+            });
+        }
+        setUser(user);
+        return user;
       });
   };
   const signout = () => {
