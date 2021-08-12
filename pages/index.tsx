@@ -1,5 +1,5 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment } from 'react';
+import * as React from 'react';
 import { Disclosure, Transition, Menu } from '@headlessui/react';
 import {
   AnnotationIcon,
@@ -10,6 +10,9 @@ import {
   XIcon,
   BellIcon,
 } from '@heroicons/react/outline';
+import { useAuth } from '../context/auth-context';
+import axios from 'axios';
+import { db } from '../firebase/clientApp';
 
 const navigation = [
   { name: 'Explore', href: '#', current: false },
@@ -21,7 +24,69 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+function isSoundCloud(url: string) {
+  const SOUNDCLOUD_REGEXP =
+    /^(?:(https?):\/\/)?(?:(?:www|m)\.)?(soundcloud\.com|snd\.sc)\/(.*)$/;
+  return SOUNDCLOUD_REGEXP.test(url);
+}
+
+function isYouTube(url: string) {
+  const YOUTUBE_REGEXP =
+    /(?:http:|https:)*?\/\/(?:www\.|)(?:youtube\.com|m\.youtube\.com|youtu\.|youtube-nocookie\.com).*(?:v=|v%3D|v\/|(?:a|p)\/(?:a|u)\/\d.*\/|watch\?|vi(?:=|\/)|\/embed\/|oembed\?|be\/|e\/)([^&?%#\/\n]*)/gm;
+  return YOUTUBE_REGEXP.test(url);
+}
+
+function parseOEmbedHTML(html: string) {
+  let src = html.split(' ').find((el) => el.startsWith('src'));
+  return src?.slice(5, -1);
+}
+
 export default function Example() {
+  const { user, setAuthModalIsOpen } = useAuth();
+  const [error, setError] = React.useState<string | null>(null);
+
+  function requestIdHandler(event: React.SyntheticEvent) {
+    event.preventDefault();
+    const target = event.target as typeof event.target & {
+      url: { value: string };
+      time: { value: string };
+    };
+    const url = target.url.value;
+    const time = target.time.value;
+
+    if (!user) {
+      setAuthModalIsOpen(true);
+    } else {
+      if (isSoundCloud(url)) {
+        axios
+          .get(`https://soundcloud.com/oembed?format=json&url=${url}`)
+          .then((res) => {
+            const iFrameSrc = res.data.html
+              .split(' ')
+              .find((el: string) => el.startsWith('src'))
+              .slice(5, -11);
+            const title = res.data.title;
+            db.collection('mixes').doc().set({ iFrameSrc, title });
+          })
+          .catch((err) => setError(err));
+      } else if (isYouTube(url)) {
+        axios
+          .get(`https://youtube.com/oembed?format=json&url=${url}`)
+          .then((res) => {
+            const iFrameSrc = res.data.html
+              .split(' ')
+              .find((el: string) => el.startsWith('src'))
+              .slice(5, -1);
+            const title = res.data.title;
+            db.collection('mixes').doc().set({ iFrameSrc, title });
+          })
+          .catch((err) => setError(err));
+      } else {
+        setError('Invalid url format');
+      }
+    }
+  }
+
   return (
     <div>
       <header className='absolute inset-x-0 z-10'>
@@ -99,7 +164,7 @@ export default function Example() {
                           </div>
                           <Transition
                             show={open}
-                            as={Fragment}
+                            as={React.Fragment}
                             enter='transition ease-out duration-100'
                             enterFrom='transform opacity-0 scale-95'
                             enterTo='transform opacity-100 scale-100'
@@ -203,28 +268,28 @@ export default function Example() {
               </p>
               <div className='mt-8'>
                 <div className='max-w-sm mx-auto'>
-                  <form onSubmit={() => {}} className='space-y-6'>
+                  <form onSubmit={requestIdHandler} className='space-y-6'>
                     <div>
-                      <label htmlFor='mix-url' className='sr-only'>
+                      <label htmlFor='url' className='sr-only'>
                         Soundcloud or Youtube url
                       </label>
                       <input
                         type='text'
-                        name='mix-url'
-                        id='mix-url'
+                        name='url'
+                        id='url'
                         placeholder='Soundcloud or Youtube url'
                         className='block w-full shadow focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
                       />
                     </div>
 
                     <div>
-                      <label htmlFor='track-time' className='sr-only'>
+                      <label htmlFor='time' className='sr-only'>
                         Track time
                       </label>
                       <input
                         type='text'
-                        name='track-time'
-                        id='track-time'
+                        name='time'
+                        id='time'
                         placeholder='Track time'
                         className='block w-full shadow focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md'
                       />
@@ -238,6 +303,7 @@ export default function Example() {
                         Request an ID
                       </button>
                     </div>
+                    {error && <div className='text-red-500'>{error}</div>}
                   </form>
                 </div>
               </div>
@@ -387,14 +453,14 @@ export default function Example() {
 // ];
 
 // export default function Home() {
-//   const { user, setAuthModalIsOpen } = useAuth();
+// const { user, setAuthModalIsOpen } = useAuth();
 
-//   function requestIdHandler(event: React.SyntheticEvent) {
-//     event.preventDefault();
-//     if (!user) {
-//       setAuthModalIsOpen(true);
-//     }
+// function requestIdHandler(event: React.SyntheticEvent) {
+//   event.preventDefault();
+//   if (!user) {
+//     setAuthModalIsOpen(true);
 //   }
+// }
 
 //   return (
 //     <Layout>

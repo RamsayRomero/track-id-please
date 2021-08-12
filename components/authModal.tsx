@@ -3,11 +3,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { LockClosedIcon } from '@heroicons/react/solid';
 import { useAuth } from '../context/auth-context';
 
-// type AuthModalProps = {
-//   open: boolean;
-//   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-// };
-
 export default function AuthModal() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
