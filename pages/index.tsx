@@ -1,15 +1,7 @@
 /* This example requires Tailwind CSS v2.0+ */
 import * as React from 'react';
 import { Disclosure, Transition, Menu } from '@headlessui/react';
-import {
-  AnnotationIcon,
-  ChatAlt2Icon,
-  InboxIcon,
-  MenuIcon,
-  QuestionMarkCircleIcon,
-  XIcon,
-  BellIcon,
-} from '@heroicons/react/outline';
+import { MenuIcon, XIcon, BellIcon } from '@heroicons/react/outline';
 import { useAuth } from '../context/auth-context';
 import axios from 'axios';
 import { db } from '../firebase/clientApp';
@@ -36,17 +28,82 @@ function isYouTube(url: string) {
   return YOUTUBE_REGEXP.test(url);
 }
 
-function parseOEmbedHTML(html: string) {
-  let src = html.split(' ').find((el) => el.startsWith('src'));
-  return src?.slice(5, -1);
+function convertTimestampToSeconds(timestamp: string) {
+  const units = timestamp.split(':');
+  if (units.length === 3) {
+    return +units[0] * 60 * 60 + +units[1] * 60 + +units[2];
+  } else {
+    throw 'Invalid timestamp format';
+  }
 }
 
 export default function Example() {
   const { user, setAuthModalIsOpen } = useAuth();
   const [error, setError] = React.useState<string | null>(null);
 
+  function connectOrCreateRequest({
+    iFrameSrc,
+    title,
+    time,
+  }: {
+    iFrameSrc: string;
+    title: string;
+    time: string;
+  }) {
+    const timestamp = convertTimestampToSeconds(time);
+    const mixRef = db.collection('mixes').doc(title);
+    mixRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          mixRef
+            .collection('track-ids')
+            .where('timestamp', '<=', timestamp + 600)
+            .where('timestamp', '>=', timestamp - 600)
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((res) => {
+                console.log(res.data());
+                // TODO
+                // redirect user to mix page and verify if track id is correct
+                // if not then write a request:
+                //   mixRef
+                //     .collection('id-requests')
+                //     .doc()
+                //     .set({ timestamp, requestedBy: user?.uid });
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+            });
+        } else {
+          const batch = db.batch();
+          batch.set(mixRef, { iFrameSrc });
+          batch.set(mixRef.collection('id-requests').doc(), {
+            timestamp,
+            requestedBy: user?.uid,
+          });
+          batch
+            .commit()
+            .then((val) => {
+              console.log(val);
+              // redirect to mix page
+            })
+            .catch((err) => {
+              console.error(err);
+              setError(err);
+            });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err);
+      });
+  }
+
   function requestIdHandler(event: React.SyntheticEvent) {
     event.preventDefault();
+
     const target = event.target as typeof event.target & {
       url: { value: string };
       time: { value: string };
@@ -66,7 +123,7 @@ export default function Example() {
               .find((el: string) => el.startsWith('src'))
               .slice(5, -11);
             const title = res.data.title;
-            db.collection('mixes').doc().set({ iFrameSrc, title });
+            connectOrCreateRequest({ iFrameSrc, time, title });
           })
           .catch((err) => setError(err));
       } else if (isYouTube(url)) {
@@ -78,7 +135,7 @@ export default function Example() {
               .find((el: string) => el.startsWith('src'))
               .slice(5, -1);
             const title = res.data.title;
-            db.collection('mixes').doc().set({ iFrameSrc, title });
+            connectOrCreateRequest({ iFrameSrc, time, title });
           })
           .catch((err) => setError(err));
       } else {
